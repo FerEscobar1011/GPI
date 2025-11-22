@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>ABM Facultades</title>
+  <title>Sistema de Gestión - Mallas Curriculares</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * {
@@ -16,6 +16,63 @@
       background: #f5f5f5;
     }
 
+    /* NAVBAR */
+    .navbar {
+      width: 100%;
+      background: #004085;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .navbar-left,
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      margin-right: 16px;
+      white-space: nowrap;
+    }
+
+    .nav-btn {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .nav-btn.active {
+      background: #fff;
+      color: #004085;
+      font-weight: 600;
+    }
+
+    .nav-btn-manual {
+      background: #ffc107;
+      color: #000;
+      font-weight: 500;
+    }
+
+    .nav-btn-manual:hover {
+      background: #ffcd39;
+    }
+
+    /* CONTENEDOR GENERAL */
     .container {
       max-width: 900px;
       margin: 20px auto;
@@ -28,12 +85,6 @@
     h1 {
       margin-top: 0;
       text-align: center;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
     }
 
     .form-row {
@@ -54,12 +105,14 @@
       min-width: 180px;
     }
 
-    input[type="text"] {
+    input[type="text"],
+    select {
       width: 100%;
       padding: 6px 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
       font-size: 0.95rem;
+      background: #fff;
     }
 
     .buttons {
@@ -131,21 +184,39 @@
     .status.error {
       color: #dc3545;
     }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>ABM de Facultades</h1>
-
-    <div class="top-bar">
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="navbar-brand">Sistema de Gestión de Mallas Curriculares</span>
+      <button class="nav-btn active" id="nav-facultades" onclick="showView('facultades')">Facultades</button>
+      <button class="nav-btn" id="nav-carreras" onclick="showView('carreras')">Carreras</button>
+      <button class="nav-btn" id="nav-materias" onclick="showView('materias')">Materias</button>
+    </div>
+    <div class="navbar-right">
       <button
         type="button"
-        class="btn-secondary"
+        class="nav-btn nav-btn-manual"
         onclick="window.open('/Manual de Usuario - Sistema de Gestión de Mallas Curriculares - Grupo ECHO.pdf', '_blank')"
       >
         Manual de usuario
       </button>
     </div>
+  </header>
+
+  <!-- VISTA FACULTADES -->
+  <main class="container view active" id="view-facultades">
+    <h1>ABM de Facultades</h1>
 
     <form id="form-facultad">
       <div class="form-row">
@@ -162,7 +233,7 @@
         <button type="submit" class="btn-primary" id="btn-guardar">Guardar</button>
         <button type="button" class="btn-secondary" id="btn-cancelar" style="display:none;">Cancelar edición</button>
       </div>
-      <div class="status" id="status"></div>
+      <div class="status" id="status-facultad"></div>
     </form>
 
     <table>
@@ -177,62 +248,179 @@
         <!-- Filas dinámicas -->
       </tbody>
     </table>
-  </div>
+  </main>
+
+  <!-- VISTA CARRERAS -->
+  <main class="container view" id="view-carreras">
+    <h1>ABM de Carreras</h1>
+
+    <form id="form-carrera">
+      <div class="form-row">
+        <div class="form-control">
+          <label for="carrera-facultad">Facultad</label>
+          <select id="carrera-facultad" name="carrera-facultad">
+            <option value="">Seleccione una facultad</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label for="carrera-codigo">Código de la carrera</label>
+          <input type="text" id="carrera-codigo" name="carrera-codigo" placeholder="Ej: INF" />
+        </div>
+        <div class="form-control">
+          <label for="carrera-descripcion">Descripción</label>
+          <input type="text" id="carrera-descripcion" name="carrera-descripcion" placeholder="Ingeniería Informática" />
+        </div>
+      </div>
+      <div class="buttons">
+        <button type="submit" class="btn-primary" id="btn-guardar-carrera">Guardar</button>
+        <button type="button" class="btn-secondary" id="btn-cancelar-carrera" style="display:none;">Cancelar edición</button>
+      </div>
+      <div class="status" id="status-carrera"></div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Facultad</th>
+          <th>Código</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-carreras">
+        <!-- Filas dinámicas -->
+      </tbody>
+    </table>
+  </main>
+
+  <!-- VISTA MATERIAS -->
+  <main class="container view" id="view-materias">
+    <h1>ABM de Materias</h1>
+
+    <form id="form-materia">
+      <div class="form-row">
+        <div class="form-control">
+          <label for="materia-facultad">Facultad</label>
+          <select id="materia-facultad" name="materia-facultad">
+            <option value="">Seleccione una facultad</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label for="materia-carrera">Carrera</label>
+          <select id="materia-carrera" name="materia-carrera">
+            <option value="">Seleccione una carrera</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label for="materia-codigo">Código de la materia</label>
+          <input type="text" id="materia-codigo" name="materia-codigo" placeholder="Ej: MAT1" />
+        </div>
+        <div class="form-control">
+          <label for="materia-descripcion">Descripción</label>
+          <input type="text" id="materia-descripcion" name="materia-descripcion" placeholder="Matemática I" />
+        </div>
+      </div>
+      <div class="buttons">
+        <button type="submit" class="btn-primary" id="btn-guardar-materia">Guardar</button>
+        <button type="button" class="btn-secondary" id="btn-cancelar-materia" style="display:none;">Cancelar edición</button>
+      </div>
+      <div class="status" id="status-materia"></div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Facultad</th>
+          <th>Carrera</th>
+          <th>Código</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-materias">
+        <!-- Filas dinámicas -->
+      </tbody>
+    </table>
+  </main>
 
   <script>
-    const API_BASE = ''; // misma URL (mismo host): usamos rutas relativas /facultades
+    const API_BASE = ''; // misma URL (mismo host)
 
-    const form = document.getElementById('form-facultad');
-    const inputCodigo = document.getElementById('codigo');
-    const inputDescripcion = document.getElementById('descripcion');
-    const tabla = document.getElementById('tabla-facultades');
-    const statusEl = document.getElementById('status');
-    const btnGuardar = document.getElementById('btn-guardar');
-    const btnCancelar = document.getElementById('btn-cancelar');
+    // NAVBAR / VISTAS
+    function showView(view) {
+      const views = document.querySelectorAll('.view');
+      views.forEach(v => v.classList.remove('active'));
 
-    let codigoEditando = null; // null = modo crear, string = modo editar
+      const navBtns = document.querySelectorAll('.nav-btn');
+      navBtns.forEach(b => b.classList.remove('active'));
 
-    function setStatus(msg, type) {
-      statusEl.textContent = msg || '';
-      statusEl.className = 'status ' + (type || '');
+      if (view === 'facultades') {
+        document.getElementById('view-facultades').classList.add('active');
+        document.getElementById('nav-facultades').classList.add('active');
+      } else if (view === 'carreras') {
+        document.getElementById('view-carreras').classList.add('active');
+        document.getElementById('nav-carreras').classList.add('active');
+        cargarFacultadesEnSelect();          // para el combo de carreras
+      } else if (view === 'materias') {
+        document.getElementById('view-materias').classList.add('active');
+        document.getElementById('nav-materias').classList.add('active');
+        cargarFacultadesEnSelectMateria();   // para el combo de materias
+      }
     }
 
-    function limpiarFormulario() {
+    // ========================
+    //  FACULTADES
+    // ========================
+    const formFac = document.getElementById('form-facultad');
+    const inputCodigo = document.getElementById('codigo');
+    const inputDescripcion = document.getElementById('descripcion');
+    const tablaFac = document.getElementById('tabla-facultades');
+    const statusFacEl = document.getElementById('status-facultad');
+    const btnGuardarFac = document.getElementById('btn-guardar');
+    const btnCancelarFac = document.getElementById('btn-cancelar');
+
+    let codigoEditando = null; // null = crear, string = editar
+
+    function setStatusFac(msg, type) {
+      statusFacEl.textContent = msg || '';
+      statusFacEl.className = 'status ' + (type || '');
+    }
+
+    function limpiarFormularioFac() {
       inputCodigo.value = '';
       inputDescripcion.value = '';
       codigoEditando = null;
       inputCodigo.disabled = false;
-      btnGuardar.textContent = 'Guardar';
-      btnCancelar.style.display = 'none';
+      btnGuardarFac.textContent = 'Guardar';
+      btnCancelarFac.style.display = 'none';
     }
 
-    function cargarEnFormulario(facultad) {
+    function cargarEnFormularioFac(facultad) {
       inputCodigo.value = facultad.codigo;
       inputDescripcion.value = facultad.descripcion;
       codigoEditando = facultad.codigo;
-      inputCodigo.disabled = true; // no dejamos editar PK
-      btnGuardar.textContent = 'Actualizar';
-      btnCancelar.style.display = 'inline-block';
+      inputCodigo.disabled = true;
+      btnGuardarFac.textContent = 'Actualizar';
+      btnCancelarFac.style.display = 'inline-block';
     }
 
     async function cargarFacultades() {
-      setStatus('Cargando facultades...', '');
       try {
         const resp = await fetch(API_BASE + '/facultades');
         if (!resp.ok) {
           throw new Error('Error HTTP ' + resp.status);
         }
         const data = await resp.json();
-        renderTabla(data);
-        setStatus('Facultades cargadas.', 'ok');
+        renderTablaFac(data);
+        setStatusFac('Facultades cargadas.', 'ok');
       } catch (err) {
         console.error(err);
-        setStatus('Error al cargar facultades.', 'error');
+        setStatusFac('Error al cargar facultades.', 'error');
       }
     }
 
-    function renderTabla(facultades) {
-      tabla.innerHTML = '';
+    function renderTablaFac(facultades) {
+      tablaFac.innerHTML = '';
       if (!facultades || facultades.length === 0) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
@@ -240,7 +428,7 @@
         td.textContent = 'No hay facultades registradas.';
         td.style.textAlign = 'center';
         tr.appendChild(td);
-        tabla.appendChild(tr);
+        tablaFac.appendChild(tr);
         return;
       }
 
@@ -259,8 +447,8 @@
         btnEditar.textContent = 'Editar';
         btnEditar.className = 'btn-secondary';
         btnEditar.onclick = () => {
-          cargarEnFormulario(f);
-          setStatus('Editando facultad ' + f.codigo, '');
+          cargarEnFormularioFac(f);
+          setStatusFac('Editando facultad ' + f.codigo, '');
         };
 
         const btnEliminar = document.createElement('button');
@@ -279,12 +467,15 @@
               const errData = await resp.json().catch(() => ({}));
               throw new Error(errData.error || ('Error HTTP ' + resp.status));
             }
-            setStatus('Facultad eliminada correctamente.', 'ok');
-            limpiarFormulario();
+            setStatusFac('Facultad eliminada correctamente.', 'ok');
+            limpiarFormularioFac();
             cargarFacultades();
+            // refrescar combos de otros módulos
+            cargarFacultadesEnSelect();
+            cargarFacultadesEnSelectMateria();
           } catch (err) {
             console.error(err);
-            setStatus('Error al eliminar facultad.', 'error');
+            setStatusFac('Error al eliminar facultad.', 'error');
           }
         };
 
@@ -295,31 +486,31 @@
         tr.appendChild(tdDescripcion);
         tr.appendChild(tdAcciones);
 
-        tabla.appendChild(tr);
+        tablaFac.appendChild(tr);
       });
     }
 
-    form.addEventListener('submit', async (e) => {
+    formFac.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const codigo = inputCodigo.value.trim();
       const descripcion = inputDescripcion.value.trim();
 
       if (!codigo && !codigoEditando) {
-        setStatus('El código es obligatorio.', 'error');
+        setStatusFac('El código es obligatorio.', 'error');
         return;
       }
       if (!descripcion) {
-        setStatus('La descripción es obligatoria.', 'error');
+        setStatusFac('La descripción es obligatoria.', 'error');
         return;
       }
 
       try {
-        btnGuardar.disabled = true;
-        setStatus('Guardando...', '');
+        btnGuardarFac.disabled = true;
+        setStatusFac('Guardando...', '');
 
         if (codigoEditando) {
-          // Modo editar -> PUT /facultades/:codigo
+          // PUT /facultades/:codigo
           const resp = await fetch(API_BASE + '/facultades/' + encodeURIComponent(codigoEditando), {
             method: 'PUT',
             headers: {
@@ -331,9 +522,9 @@
             const errData = await resp.json().catch(() => ({}));
             throw new Error(errData.error || ('Error HTTP ' + resp.status));
           }
-          setStatus('Facultad actualizada correctamente.', 'ok');
+          setStatusFac('Facultad actualizada correctamente.', 'ok');
         } else {
-          // Modo crear -> POST /facultades
+          // POST /facultades
           const resp = await fetch(API_BASE + '/facultades', {
             method: 'POST',
             headers: {
@@ -345,26 +536,628 @@
             const errData = await resp.json().catch(() => ({}));
             throw new Error(errData.error || ('Error HTTP ' + resp.status));
           }
-          setStatus('Facultad creada correctamente.', 'ok');
+          setStatusFac('Facultad creada correctamente.', 'ok');
         }
 
-        limpiarFormulario();
+        limpiarFormularioFac();
         cargarFacultades();
+        cargarFacultadesEnSelect();
+        cargarFacultadesEnSelectMateria();
       } catch (err) {
         console.error(err);
-        setStatus(err.message || 'Error al guardar facultad.', 'error');
+        setStatusFac(err.message || 'Error al guardar facultad.', 'error');
       } finally {
-        btnGuardar.disabled = false;
+        btnGuardarFac.disabled = false;
       }
     });
 
-    btnCancelar.addEventListener('click', () => {
-      limpiarFormulario();
-      setStatus('Edición cancelada.', '');
+    btnCancelarFac.addEventListener('click', () => {
+      limpiarFormularioFac();
+      setStatusFac('Edición cancelada.', '');
     });
 
-    // Cargar lista al iniciar
-    cargarFacultades();
+    // ========================
+    //  CARRERAS
+    // ========================
+    const formCar = document.getElementById('form-carrera');
+    const selectFacultadCar = document.getElementById('carrera-facultad');
+    const inputCarCodigo = document.getElementById('carrera-codigo');
+    const inputCarDescripcion = document.getElementById('carrera-descripcion');
+    const tablaCar = document.getElementById('tabla-carreras');
+    const statusCarEl = document.getElementById('status-carrera');
+    const btnGuardarCar = document.getElementById('btn-guardar-carrera');
+    const btnCancelarCar = document.getElementById('btn-cancelar-carrera');
+
+    let carreraFacultadEditando = null;
+    let carreraCodigoEditando = null;
+
+    function setStatusCar(msg, type) {
+      statusCarEl.textContent = msg || '';
+      statusCarEl.className = 'status ' + (type || '');
+    }
+
+    function limpiarFormularioCar() {
+      inputCarCodigo.value = '';
+      inputCarDescripcion.value = '';
+      carreraFacultadEditando = null;
+      carreraCodigoEditando = null;
+      selectFacultadCar.disabled = false;
+      inputCarCodigo.disabled = false;
+      btnGuardarCar.textContent = 'Guardar';
+      btnCancelarCar.style.display = 'none';
+    }
+
+    function cargarEnFormularioCar(carrera) {
+      selectFacultadCar.value = carrera.facultad_codigo;
+      inputCarCodigo.value = carrera.codigo;
+      inputCarDescripcion.value = carrera.descripcion;
+
+      carreraFacultadEditando = carrera.facultad_codigo;
+      carreraCodigoEditando = carrera.codigo;
+
+      selectFacultadCar.disabled = true;
+      inputCarCodigo.disabled = true;
+      btnGuardarCar.textContent = 'Actualizar';
+      btnCancelarCar.style.display = 'inline-block';
+    }
+
+    async function cargarFacultadesEnSelect() {
+      try {
+        const resp = await fetch(API_BASE + '/facultades');
+        if (!resp.ok) {
+          throw new Error('Error HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+
+        const valorSeleccionado = selectFacultadCar.value;
+
+        selectFacultadCar.innerHTML = '<option value="">Seleccione una facultad</option>';
+        data.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.codigo;
+          opt.textContent = f.codigo + ' - ' + f.descripcion;
+          selectFacultadCar.appendChild(opt);
+        });
+
+        if (valorSeleccionado) {
+          const existe = data.some(f => f.codigo === valorSeleccionado);
+          if (existe) {
+            selectFacultadCar.value = valorSeleccionado;
+            cargarCarreras(); // recargar carreras de esa facultad
+          } else {
+            tablaCar.innerHTML = '';
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function cargarCarreras() {
+      const facCodigo = selectFacultadCar.value;
+      if (!facCodigo) {
+        tablaCar.innerHTML = '';
+        setStatusCar('Seleccione una facultad para ver sus carreras.', '');
+        return;
+      }
+
+      setStatusCar('Cargando carreras...', '');
+      try {
+        const resp = await fetch(API_BASE + '/carreras/facultad/' + encodeURIComponent(facCodigo));
+        if (!resp.ok) {
+          throw new Error('Error HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+        renderTablaCar(data);
+        setStatusCar('Carreras cargadas.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatusCar('Error al cargar carreras.', 'error');
+      }
+    }
+
+    function renderTablaCar(carreras) {
+      tablaCar.innerHTML = '';
+      if (!carreras || carreras.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.textContent = 'No hay carreras registradas para esta facultad.';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        tablaCar.appendChild(tr);
+        return;
+      }
+
+      carreras.forEach(c => {
+        const tr = document.createElement('tr');
+
+        const tdFac = document.createElement('td');
+        tdFac.textContent = c.facultad_codigo;
+
+        const tdCod = document.createElement('td');
+        tdCod.textContent = c.codigo;
+
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = c.descripcion;
+
+        const tdAcc = document.createElement('td');
+
+        const btnEditar = document.createElement('button');
+        btnEditar.textContent = 'Editar';
+        btnEditar.className = 'btn-secondary';
+        btnEditar.onclick = () => {
+          cargarEnFormularioCar(c);
+          setStatusCar('Editando carrera ' + c.codigo + ' (' + c.facultad_codigo + ')', '');
+        };
+
+        const btnEliminar = document.createElement('button');
+        btnEliminar.textContent = 'Eliminar';
+        btnEliminar.className = 'btn-danger';
+        btnEliminar.style.marginLeft = '6px';
+        btnEliminar.onclick = async () => {
+          const ok = confirm('¿Eliminar la carrera "' + c.codigo + '" de la facultad "' + c.facultad_codigo + '"?');
+          if (!ok) return;
+
+          try {
+            const resp = await fetch(
+              API_BASE + '/carreras/' + encodeURIComponent(c.facultad_codigo) + '/' + encodeURIComponent(c.codigo),
+              {
+                method: 'DELETE'
+              }
+            );
+            if (!resp.ok) {
+              const errData = await resp.json().catch(() => ({}));
+              throw new Error(errData.error || ('Error HTTP ' + resp.status));
+            }
+            setStatusCar('Carrera eliminada correctamente.', 'ok');
+            limpiarFormularioCar();
+            cargarCarreras();
+            cargarFacultadesEnSelectMateria(); // por si afecta materias
+          } catch (err) {
+            console.error(err);
+            setStatusCar('Error al eliminar carrera.', 'error');
+          }
+        };
+
+        tdAcc.appendChild(btnEditar);
+        tdAcc.appendChild(btnEliminar);
+
+        tr.appendChild(tdFac);
+        tr.appendChild(tdCod);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdAcc);
+
+        tablaCar.appendChild(tr);
+      });
+    }
+
+    selectFacultadCar.addEventListener('change', () => {
+      limpiarFormularioCar();
+      cargarCarreras();
+    });
+
+    formCar.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const facultad_codigo = selectFacultadCar.value;
+      const codigo = inputCarCodigo.value.trim();
+      const descripcion = inputCarDescripcion.value.trim();
+
+      if (!facultad_codigo) {
+        setStatusCar('Debe seleccionar una facultad.', 'error');
+        return;
+      }
+      if (!codigo && !carreraCodigoEditando) {
+        setStatusCar('El código de la carrera es obligatorio.', 'error');
+        return;
+      }
+      if (!descripcion) {
+        setStatusCar('La descripción es obligatoria.', 'error');
+        return;
+      }
+
+      try {
+        btnGuardarCar.disabled = true;
+        setStatusCar('Guardando...', '');
+
+        if (carreraFacultadEditando && carreraCodigoEditando) {
+          // Modo editar -> PUT /carreras/:facultadCodigo/:codigo
+          const resp = await fetch(
+            API_BASE + '/carreras/' +
+            encodeURIComponent(carreraFacultadEditando) + '/' +
+            encodeURIComponent(carreraCodigoEditando),
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ descripcion })
+            }
+          );
+          if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || ('Error HTTP ' + resp.status));
+          }
+          setStatusCar('Carrera actualizada correctamente.', 'ok');
+        } else {
+          // Modo crear -> POST /carreras
+          const resp = await fetch(API_BASE + '/carreras', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ facultad_codigo, codigo, descripcion })
+          });
+          if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || ('Error HTTP ' + resp.status));
+          }
+          setStatusCar('Carrera creada correctamente.', 'ok');
+        }
+
+        limpiarFormularioCar();
+        cargarCarreras();
+        cargarFacultadesEnSelectMateria();
+      } catch (err) {
+        console.error(err);
+        setStatusCar(err.message || 'Error al guardar carrera.', 'error');
+      } finally {
+        btnGuardarCar.disabled = false;
+      }
+    });
+
+    btnCancelarCar.addEventListener('click', () => {
+      limpiarFormularioCar();
+      setStatusCar('Edición cancelada.', '');
+    });
+
+    // ========================
+    //  MATERIAS
+    // ========================
+    const formMat = document.getElementById('form-materia');
+    const selectFacultadMat = document.getElementById('materia-facultad');
+    const selectCarreraMat = document.getElementById('materia-carrera');
+    const inputMatCodigo = document.getElementById('materia-codigo');
+    const inputMatDescripcion = document.getElementById('materia-descripcion');
+    const tablaMat = document.getElementById('tabla-materias');
+    const statusMatEl = document.getElementById('status-materia');
+    const btnGuardarMat = document.getElementById('btn-guardar-materia');
+    const btnCancelarMat = document.getElementById('btn-cancelar-materia');
+
+    let materiaFacultadEditando = null;
+    let materiaCarreraEditando = null;
+    let materiaCodigoEditando = null;
+
+    function setStatusMat(msg, type) {
+      statusMatEl.textContent = msg || '';
+      statusMatEl.className = 'status ' + (type || '');
+    }
+
+    function limpiarFormularioMat() {
+      inputMatCodigo.value = '';
+      inputMatDescripcion.value = '';
+      materiaFacultadEditando = null;
+      materiaCarreraEditando = null;
+      materiaCodigoEditando = null;
+      selectFacultadMat.disabled = false;
+      selectCarreraMat.disabled = false;
+      inputMatCodigo.disabled = false;
+      btnGuardarMat.textContent = 'Guardar';
+      btnCancelarMat.style.display = 'none';
+    }
+
+    function cargarEnFormularioMat(m) {
+      selectFacultadMat.value = m.facultad_codigo;
+      // al cargar la carrera, necesitamos que el combo esté cargado:
+      cargarCarrerasEnSelectMateria().then(() => {
+        selectCarreraMat.value = m.carrera_codigo;
+      });
+
+      inputMatCodigo.value = m.codigo;
+      inputMatDescripcion.value = m.descripcion;
+
+      materiaFacultadEditando = m.facultad_codigo;
+      materiaCarreraEditando = m.carrera_codigo;
+      materiaCodigoEditando = m.codigo;
+
+      selectFacultadMat.disabled = true;
+      selectCarreraMat.disabled = true;
+      inputMatCodigo.disabled = true;
+      btnGuardarMat.textContent = 'Actualizar';
+      btnCancelarMat.style.display = 'inline-block';
+    }
+
+    async function cargarFacultadesEnSelectMateria() {
+      try {
+        const resp = await fetch(API_BASE + '/facultades');
+        if (!resp.ok) {
+          throw new Error('Error HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+
+        const valorSeleccionado = selectFacultadMat.value;
+
+        selectFacultadMat.innerHTML = '<option value="">Seleccione una facultad</option>';
+        data.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.codigo;
+          opt.textContent = f.codigo + ' - ' + f.descripcion;
+          selectFacultadMat.appendChild(opt);
+        });
+
+        if (valorSeleccionado) {
+          const existe = data.some(f => f.codigo === valorSeleccionado);
+          if (existe) {
+            selectFacultadMat.value = valorSeleccionado;
+            await cargarCarrerasEnSelectMateria();
+            await cargarMaterias();
+          } else {
+            selectCarreraMat.innerHTML = '<option value="">Seleccione una carrera</option>';
+            tablaMat.innerHTML = '';
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function cargarCarrerasEnSelectMateria() {
+      const facCodigo = selectFacultadMat.value;
+      if (!facCodigo) {
+        selectCarreraMat.innerHTML = '<option value="">Seleccione una carrera</option>';
+        return;
+      }
+
+      try {
+        const resp = await fetch(API_BASE + '/carreras/facultad/' + encodeURIComponent(facCodigo));
+        if (!resp.ok) {
+          throw new Error('Error HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+
+        const valorSeleccionado = selectCarreraMat.value;
+
+        selectCarreraMat.innerHTML = '<option value="">Seleccione una carrera</option>';
+        data.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.codigo; // carrera_codigo
+          opt.textContent = c.codigo + ' - ' + c.descripcion;
+          selectCarreraMat.appendChild(opt);
+        });
+
+        if (valorSeleccionado) {
+          const existe = data.some(c => c.codigo === valorSeleccionado);
+          if (existe) {
+            selectCarreraMat.value = valorSeleccionado;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function cargarMaterias() {
+      const facultadCodigo = selectFacultadMat.value;
+      const carreraCodigo = selectCarreraMat.value;
+
+      if (!facultadCodigo || !carreraCodigo) {
+        tablaMat.innerHTML = '';
+        setStatusMat('Seleccione facultad y carrera para ver sus materias.', '');
+        return;
+      }
+
+      setStatusMat('Cargando materias...', '');
+      try {
+        const resp = await fetch(
+          API_BASE + '/materias/facultad/' +
+          encodeURIComponent(facultadCodigo) +
+          '/carrera/' +
+          encodeURIComponent(carreraCodigo)
+        );
+        if (!resp.ok) {
+          throw new Error('Error HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+        renderTablaMat(data);
+        setStatusMat('Materias cargadas.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatusMat('Error al cargar materias.', 'error');
+      }
+    }
+
+    function renderTablaMat(materias) {
+      tablaMat.innerHTML = '';
+      if (!materias || materias.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.textContent = 'No hay materias registradas para esta carrera.';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        tablaMat.appendChild(tr);
+        return;
+      }
+
+      materias.forEach(m => {
+        const tr = document.createElement('tr');
+
+        const tdFac = document.createElement('td');
+        tdFac.textContent = m.facultad_codigo;
+
+        const tdCar = document.createElement('td');
+        tdCar.textContent = m.carrera_codigo;
+
+        const tdCod = document.createElement('td');
+        tdCod.textContent = m.codigo;
+
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = m.descripcion;
+
+        const tdAcc = document.createElement('td');
+
+        const btnEditar = document.createElement('button');
+        btnEditar.textContent = 'Editar';
+        btnEditar.className = 'btn-secondary';
+        btnEditar.onclick = () => {
+          cargarEnFormularioMat(m);
+          setStatusMat(
+            'Editando materia ' + m.codigo + ' (' + m.carrera_codigo + ', ' + m.facultad_codigo + ')',
+            ''
+          );
+        };
+
+        const btnEliminar = document.createElement('button');
+        btnEliminar.textContent = 'Eliminar';
+        btnEliminar.className = 'btn-danger';
+        btnEliminar.style.marginLeft = '6px';
+        btnEliminar.onclick = async () => {
+          const ok = confirm(
+            '¿Eliminar la materia "' + m.codigo +
+            '" de la carrera "' + m.carrera_codigo +
+            '" y facultad "' + m.facultad_codigo + '"?'
+          );
+          if (!ok) return;
+
+          try {
+            const resp = await fetch(
+              API_BASE +
+              '/materias/' +
+              encodeURIComponent(m.facultad_codigo) + '/' +
+              encodeURIComponent(m.carrera_codigo) + '/' +
+              encodeURIComponent(m.codigo),
+              { method: 'DELETE' }
+            );
+            if (!resp.ok) {
+              const errData = await resp.json().catch(() => ({}));
+              throw new Error(errData.error || ('Error HTTP ' + resp.status));
+            }
+            setStatusMat('Materia eliminada correctamente.', 'ok');
+            limpiarFormularioMat();
+            cargarMaterias();
+          } catch (err) {
+            console.error(err);
+            setStatusMat('Error al eliminar materia.', 'error');
+          }
+        };
+
+        tdAcc.appendChild(btnEditar);
+        tdAcc.appendChild(btnEliminar);
+
+        tr.appendChild(tdFac);
+        tr.appendChild(tdCar);
+        tr.appendChild(tdCod);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdAcc);
+
+        tablaMat.appendChild(tr);
+      });
+    }
+
+    selectFacultadMat.addEventListener('change', async () => {
+      limpiarFormularioMat();
+      await cargarCarrerasEnSelectMateria();
+      await cargarMaterias();
+    });
+
+    selectCarreraMat.addEventListener('change', async () => {
+      limpiarFormularioMat();
+      await cargarMaterias();
+    });
+
+    formMat.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const facultad_codigo = selectFacultadMat.value;
+      const carrera_codigo = selectCarreraMat.value;
+      const codigo = inputMatCodigo.value.trim();
+      const descripcion = inputMatDescripcion.value.trim();
+
+      if (!facultad_codigo) {
+        setStatusMat('Debe seleccionar una facultad.', 'error');
+        return;
+      }
+      if (!carrera_codigo) {
+        setStatusMat('Debe seleccionar una carrera.', 'error');
+        return;
+      }
+      if (!codigo && !materiaCodigoEditando) {
+        setStatusMat('El código de la materia es obligatorio.', 'error');
+        return;
+      }
+      if (!descripcion) {
+        setStatusMat('La descripción es obligatoria.', 'error');
+        return;
+      }
+
+      try {
+        btnGuardarMat.disabled = true;
+        setStatusMat('Guardando...', '');
+
+        if (materiaFacultadEditando && materiaCarreraEditando && materiaCodigoEditando) {
+          // Modo editar -> PUT /materias/:facultadCodigo/:carreraCodigo/:codigo
+          const resp = await fetch(
+            API_BASE +
+            '/materias/' +
+            encodeURIComponent(materiaFacultadEditando) + '/' +
+            encodeURIComponent(materiaCarreraEditando) + '/' +
+            encodeURIComponent(materiaCodigoEditando),
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ descripcion })
+            }
+          );
+          if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || ('Error HTTP ' + resp.status));
+          }
+          setStatusMat('Materia actualizada correctamente.', 'ok');
+        } else {
+          // Modo crear -> POST /materias
+          const resp = await fetch(API_BASE + '/materias', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              facultad_codigo,
+              carrera_codigo,
+              codigo,
+              descripcion
+            })
+          });
+          if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || ('Error HTTP ' + resp.status));
+          }
+          setStatusMat('Materia creada correctamente.', 'ok');
+        }
+
+        limpiarFormularioMat();
+        cargarMaterias();
+      } catch (err) {
+        console.error(err);
+        setStatusMat(err.message || 'Error al guardar materia.', 'error');
+      } finally {
+        btnGuardarMat.disabled = false;
+      }
+    });
+
+    btnCancelarMat.addEventListener('click', () => {
+      limpiarFormularioMat();
+      setStatusMat('Edición cancelada.', '');
+    });
+
+    // Inicialización
+    (function init() {
+      cargarFacultades();
+      cargarFacultadesEnSelect();
+      cargarFacultadesEnSelectMateria();
+    })();
   </script>
 </body>
 </html>
