@@ -9,6 +9,12 @@
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+    .welcome-logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 380px;   /* tamaño máximo grande */
+      width: 100%;        /* se adapta si la pantalla es chica */
+    }
 
     body {
       margin: 0;
@@ -192,6 +198,25 @@
     .view.active {
       display: block;
     }
+
+    /* Estilos extra para la pantalla de inicio */
+    .welcome-title {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .welcome-subtitle {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 25px;
+    }
+
+    .welcome-footer {
+      text-align: center;
+      font-weight: 600;
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
@@ -199,7 +224,8 @@
   <header class="navbar">
     <div class="navbar-left">
       <span class="navbar-brand">Sistema de Gestión de Mallas Curriculares</span>
-      <button class="nav-btn active" id="nav-facultades" onclick="showView('facultades')">Facultades</button>
+      <button class="nav-btn active" id="nav-inicio" onclick="showView('inicio')">Inicio</button>
+      <button class="nav-btn" id="nav-facultades" onclick="showView('facultades')">Facultades</button>
       <button class="nav-btn" id="nav-carreras" onclick="showView('carreras')">Carreras</button>
       <button class="nav-btn" id="nav-materias" onclick="showView('materias')">Materias</button>
     </div>
@@ -214,8 +240,29 @@
     </div>
   </header>
 
+  <!-- VISTA INICIO -->
+  <main class="container view active" id="view-inicio">
+    <h1 class="welcome-title">Bienvenido al Sistema de Gestión de Mallas Curriculares</h1>
+
+    <!-- LOGO UAA -->
+    <img
+      src="logoUAA.png"
+      alt="Universidad Autónoma de Asunción"
+      class="welcome-logo"
+    />
+
+    <p class="welcome-subtitle">
+      Desde este sistema podrá administrar Facultades, Carreras y Materias de forma sencilla.
+      Utilice el menú superior para navegar entre los módulos.
+    </p>
+    <p class="welcome-footer">
+      Hecho por grupo <strong>ECHO</strong>
+    </p>
+  </main>
+
+
   <!-- VISTA FACULTADES -->
-  <main class="container view active" id="view-facultades">
+  <main class="container view" id="view-facultades">
     <h1>ABM de Facultades</h1>
 
     <form id="form-facultad">
@@ -354,7 +401,10 @@
       const navBtns = document.querySelectorAll('.nav-btn');
       navBtns.forEach(b => b.classList.remove('active'));
 
-      if (view === 'facultades') {
+      if (view === 'inicio') {
+        document.getElementById('view-inicio').classList.add('active');
+        document.getElementById('nav-inicio').classList.add('active');
+      } else if (view === 'facultades') {
         document.getElementById('view-facultades').classList.add('active');
         document.getElementById('nav-facultades').classList.add('active');
       } else if (view === 'carreras') {
@@ -1157,6 +1207,7 @@
       cargarFacultades();
       cargarFacultadesEnSelect();
       cargarFacultadesEnSelectMateria();
+      // Vista inicial ya es "Inicio" por defecto en el HTML
     })();
   </script>
 </body>
