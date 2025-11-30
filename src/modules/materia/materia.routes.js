@@ -1,25 +1,37 @@
 // src/modules/materia/materia.routes.js
 const express = require('express');
-const controller = require('./materia.controller');
-
 const router = express.Router();
 
-// GET /materias
-router.get('/', controller.listarMaterias);
+const {
+  listarMaterias,
+  listarMateriasPorFacultad,
+  obtenerMateria,
+  crearMateria,
+  actualizarMateria,
+  eliminarMateria,
+} = require('./materia.controller');
 
-// GET /materias/facultad/:facultadCodigo/carrera/:carreraCodigo
-router.get('/facultad/:facultadCodigo/carrera/:carreraCodigo', controller.listarMateriasPorCarrera);
+// Lista todas las materias
+router.get('/', listarMaterias);
 
-// GET /materias/:facultadCodigo/:carreraCodigo/:codigo
-router.get('/:facultadCodigo/:carreraCodigo/:codigo', controller.obtenerMateria);
+// Lista materias por facultad
+// GET /materias/facultad/FI
+router.get('/facultad/:facultadCodigo', listarMateriasPorFacultad);
 
+// Obtiene una materia específica
+// GET /materias/FI/MAT1
+router.get('/:facultadCodigo/:codigo', obtenerMateria);
+
+// Crea materia
 // POST /materias
-router.post('/', controller.crearMateria);
+router.post('/', crearMateria);
 
-// PUT /materias/:facultadCodigo/:carreraCodigo/:codigo
-router.put('/:facultadCodigo/:carreraCodigo/:codigo', controller.actualizarMateria);
+// Actualiza materia
+// PUT /materias/FI/MAT1
+router.put('/:facultadCodigo/:codigo', actualizarMateria);
 
-// DELETE /materias/:facultadCodigo/:carreraCodigo/:codigo
-router.delete('/:facultadCodigo/:carreraCodigo/:codigo', controller.eliminarMateria);
+// Elimina materia
+// DELETE /materias/FI/MAT1
+router.delete('/:facultadCodigo/:codigo', eliminarMateria);
 
 module.exports = router;

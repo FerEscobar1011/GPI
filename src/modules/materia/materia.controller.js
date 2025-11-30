@@ -8,9 +8,9 @@ const db = require('../../db');
 async function listarMaterias(req, res) {
   try {
     const result = await db.query(
-      `SELECT facultad_codigo, carrera_codigo, codigo, descripcion
+      `SELECT facultad_codigo, codigo, descripcion
        FROM materias
-       ORDER BY facultad_codigo, carrera_codigo, codigo`
+       ORDER BY facultad_codigo, codigo`
     );
     res.json(result.rows);
   } catch (err) {
@@ -20,44 +20,42 @@ async function listarMaterias(req, res) {
 }
 
 /**
- * GET /materias/facultad/:facultadCodigo/carrera/:carreraCodigo
- * Lista todas las materias de una carrera específica
+ * GET /materias/facultad/:facultadCodigo
+ * Lista todas las materias de una facultad específica
  */
-async function listarMateriasPorCarrera(req, res) {
+async function listarMateriasPorFacultad(req, res) {
   const facultadCodigo = req.params.facultadCodigo;
-  const carreraCodigo = req.params.carreraCodigo;
 
   try {
     const result = await db.query(
-      `SELECT facultad_codigo, carrera_codigo, codigo, descripcion
+      `SELECT facultad_codigo, codigo, descripcion
        FROM materias
-       WHERE facultad_codigo = $1 AND carrera_codigo = $2
+       WHERE facultad_codigo = $1
        ORDER BY codigo ASC`,
-      [facultadCodigo, carreraCodigo]
+      [facultadCodigo]
     );
 
     res.json(result.rows);
   } catch (err) {
-    console.error('Error al listar materias por carrera:', err);
+    console.error('Error al listar materias por facultad:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 }
 
 /**
- * GET /materias/:facultadCodigo/:carreraCodigo/:codigo
+ * GET /materias/:facultadCodigo/:codigo
  * Obtiene una materia específica
  */
 async function obtenerMateria(req, res) {
   const facultadCodigo = req.params.facultadCodigo;
-  const carreraCodigo = req.params.carreraCodigo;
   const codigo = req.params.codigo;
 
   try {
     const result = await db.query(
-      `SELECT facultad_codigo, carrera_codigo, codigo, descripcion
+      `SELECT facultad_codigo, codigo, descripcion
        FROM materias
-       WHERE facultad_codigo = $1 AND carrera_codigo = $2 AND codigo = $3`,
-      [facultadCodigo, carreraCodigo, codigo]
+       WHERE facultad_codigo = $1 AND codigo = $2`,
+      [facultadCodigo, codigo]
     );
 
     if (result.rows.length === 0) {
@@ -77,19 +75,15 @@ async function obtenerMateria(req, res) {
  * Body JSON:
  * {
  *   "facultad_codigo": "FI",
- *   "carrera_codigo": "INF",
  *   "codigo": "MAT1",
  *   "descripcion": "Matemática I"
  * }
  */
 async function crearMateria(req, res) {
-  const { facultad_codigo, carrera_codigo, codigo, descripcion } = req.body;
+  const { facultad_codigo, codigo, descripcion } = req.body;
 
   if (!facultad_codigo || String(facultad_codigo).trim() === '') {
     return res.status(400).json({ error: 'El campo facultad_codigo es obligatorio' });
-  }
-  if (!carrera_codigo || String(carrera_codigo).trim() === '') {
-    return res.status(400).json({ error: 'El campo carrera_codigo es obligatorio' });
   }
   if (!codigo || String(codigo).trim() === '') {
     return res.status(400).json({ error: 'El campo codigo es obligatorio' });
@@ -100,12 +94,11 @@ async function crearMateria(req, res) {
 
   try {
     const result = await db.query(
-      `INSERT INTO materias (facultad_codigo, carrera_codigo, codigo, descripcion)
-       VALUES ($1, $2, $3, $4)
-       RETURNING facultad_codigo, carrera_codigo, codigo, descripcion`,
+      `INSERT INTO materias (facultad_codigo, codigo, descripcion)
+       VALUES ($1, $2, $3)
+       RETURNING facultad_codigo, codigo, descripcion`,
       [
         String(facultad_codigo).trim(),
-        String(carrera_codigo).trim(),
         String(codigo).trim(),
         String(descripcion).trim()
       ]
@@ -117,13 +110,13 @@ async function crearMateria(req, res) {
 
     if (err.code === '23505') {
       return res.status(409).json({
-        error: 'Ya existe una materia con ese código en esa carrera',
+        error: 'Ya existe una materia con ese código en esa facultad',
       });
     }
 
     if (err.code === '23503') {
       return res.status(400).json({
-        error: 'La carrera especificada no existe (facultad_codigo + carrera_codigo inválidos)',
+        error: 'La facultad especificada no existe (facultad_codigo inválido)',
       });
     }
 
@@ -132,7 +125,7 @@ async function crearMateria(req, res) {
 }
 
 /**
- * PUT /materias/:facultadCodigo/:carreraCodigo/:codigo
+ * PUT /materias/:facultadCodigo/:codigo
  * Actualiza la descripción de una materia
  * Body JSON:
  * {
@@ -141,7 +134,6 @@ async function crearMateria(req, res) {
  */
 async function actualizarMateria(req, res) {
   const facultadCodigo = req.params.facultadCodigo;
-  const carreraCodigo = req.params.carreraCodigo;
   const codigo = req.params.codigo;
   const { descripcion } = req.body;
 
@@ -153,9 +145,9 @@ async function actualizarMateria(req, res) {
     const result = await db.query(
       `UPDATE materias
        SET descripcion = $1
-       WHERE facultad_codigo = $2 AND carrera_codigo = $3 AND codigo = $4
-       RETURNING facultad_codigo, carrera_codigo, codigo, descripcion`,
-      [String(descripcion).trim(), facultadCodigo, carreraCodigo, codigo]
+       WHERE facultad_codigo = $2 AND codigo = $3
+       RETURNING facultad_codigo, codigo, descripcion`,
+      [String(descripcion).trim(), facultadCodigo, codigo]
     );
 
     if (result.rows.length === 0) {
@@ -170,20 +162,19 @@ async function actualizarMateria(req, res) {
 }
 
 /**
- * DELETE /materias/:facultadCodigo/:carreraCodigo/:codigo
+ * DELETE /materias/:facultadCodigo/:codigo
  * Elimina una materia
  */
 async function eliminarMateria(req, res) {
   const facultadCodigo = req.params.facultadCodigo;
-  const carreraCodigo = req.params.carreraCodigo;
   const codigo = req.params.codigo;
 
   try {
     const result = await db.query(
       `DELETE FROM materias
-       WHERE facultad_codigo = $1 AND carrera_codigo = $2 AND codigo = $3
-       RETURNING facultad_codigo, carrera_codigo, codigo`,
-      [facultadCodigo, carreraCodigo, codigo]
+       WHERE facultad_codigo = $1 AND codigo = $2
+       RETURNING facultad_codigo, codigo`,
+      [facultadCodigo, codigo]
     );
 
     if (result.rows.length === 0) {
@@ -199,7 +190,7 @@ async function eliminarMateria(req, res) {
 
 module.exports = {
   listarMaterias,
-  listarMateriasPorCarrera,
+  listarMateriasPorFacultad,
   obtenerMateria,
   crearMateria,
   actualizarMateria,
