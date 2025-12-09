@@ -9,6 +9,12 @@
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+    .welcome-logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 380px;
+      width: 100%;
+    }
 
     body {
       margin: 0;
@@ -194,14 +200,7 @@
       display: block;
     }
 
-    /* Pantalla de inicio */
-    .welcome-logo {
-      display: block;
-      margin: 0 auto 20px;
-      max-width: 380px;
-      width: 100%;
-    }
-
+    /* Inicio */
     .welcome-title {
       font-size: 1.8rem;
       text-align: center;
@@ -254,7 +253,7 @@
     />
 
     <p class="welcome-subtitle">
-      Desde este sistema podrá administrar Facultades, Carreras, Materias y la Malla Curricular de forma sencilla.
+      Desde este sistema podrá administrar Facultades, Carreras, Materias y Mallas de forma sencilla.
       Utilice el menú superior para navegar entre los módulos.
     </p>
     <p class="welcome-footer">
@@ -292,9 +291,7 @@
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tabla-facultades">
-        <!-- Filas dinámicas -->
-      </tbody>
+      <tbody id="tabla-facultades"></tbody>
     </table>
   </main>
 
@@ -335,13 +332,11 @@
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tabla-carreras">
-        <!-- Filas dinámicas -->
-      </tbody>
+      <tbody id="tabla-carreras"></tbody>
     </table>
   </main>
 
-  <!-- VISTA MATERIAS (depende SOLO de facultad) -->
+  <!-- VISTA MATERIAS -->
   <main class="container view" id="view-materias">
     <h1>ABM de Materias</h1>
 
@@ -378,15 +373,13 @@
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tabla-materias">
-        <!-- Filas dinámicas -->
-      </tbody>
+      <tbody id="tabla-materias"></tbody>
     </table>
   </main>
 
   <!-- VISTA MALLA -->
   <main class="container view" id="view-malla">
-    <h1>ABM de Malla Curricular</h1>
+    <h1>Gestión de Malla (Plan de estudios)</h1>
 
     <form id="form-malla">
       <div class="form-row">
@@ -403,28 +396,32 @@
           </select>
         </div>
         <div class="form-control">
-          <label for="malla-materia">Materia</label>
-          <select id="malla-materia" name="malla-materia">
-            <option value="">Seleccione una materia</option>
-          </select>
+          <label for="malla-promo">Promo</label>
+          <input type="number" id="malla-promo" name="malla-promo" placeholder="Ej: 2025" />
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-control">
+          <label for="malla-materia">Materia</label>
+          <select id="malla-materia" name="malla-materia">
+            <option value="">Seleccione una materia</option>
+          </select>
+        </div>
+        <div class="form-control">
           <label for="malla-anio">Año</label>
-          <input type="number" id="malla-anio" name="malla-anio" placeholder="Ej: 1" />
+          <input type="number" id="malla-anio" name="malla-anio" placeholder="Ej: 1" min="1" />
         </div>
         <div class="form-control">
           <label for="malla-semestre">Semestre</label>
-          <input type="number" id="malla-semestre" name="malla-semestre" placeholder="Ej: 1" />
+          <input type="number" id="malla-semestre" name="malla-semestre" placeholder="Ej: 1" min="1" max="2" />
         </div>
         <div class="form-control">
           <label for="malla-tipo">Tipo</label>
           <select id="malla-tipo" name="malla-tipo">
             <option value="">Seleccione tipo</option>
-            <option value="OBLIGATORIA">Obligatoria</option>
-            <option value="ELECTIVA">Electiva</option>
+            <option value="OBLIGATORIA">OBLIGATORIA</option>
+            <option value="OPTATIVA">OPTATIVA</option>
           </select>
         </div>
       </div>
@@ -441,21 +438,21 @@
         <tr>
           <th>Facultad</th>
           <th>Carrera</th>
+          <th>Promo</th>
           <th>Materia</th>
+          <th>Descripción materia</th>
           <th>Año</th>
           <th>Semestre</th>
           <th>Tipo</th>
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tabla-malla">
-        <!-- Filas dinámicas -->
-      </tbody>
+      <tbody id="tabla-malla"></tbody>
     </table>
   </main>
 
   <script>
-    const API_BASE = ''; // misma URL (mismo host)
+    const API_BASE = ''; // mismo host
 
     // NAVBAR / VISTAS
     function showView(view) {
@@ -474,15 +471,15 @@
       } else if (view === 'carreras') {
         document.getElementById('view-carreras').classList.add('active');
         document.getElementById('nav-carreras').classList.add('active');
-        cargarFacultadesEnSelect();          // combo carreras
+        cargarFacultadesEnSelectCarreras();
       } else if (view === 'materias') {
         document.getElementById('view-materias').classList.add('active');
         document.getElementById('nav-materias').classList.add('active');
-        cargarFacultadesEnSelectMateria();   // combo materias
+        cargarFacultadesEnSelectMaterias();
       } else if (view === 'malla') {
         document.getElementById('view-malla').classList.add('active');
         document.getElementById('nav-malla').classList.add('active');
-        cargarFacultadesEnSelectMalla();     // combos malla
+        cargarFacultadesEnSelectMalla();
       }
     }
 
@@ -497,7 +494,7 @@
     const btnGuardarFac = document.getElementById('btn-guardar');
     const btnCancelarFac = document.getElementById('btn-cancelar');
 
-    let codigoEditando = null; // null = crear, string = editar
+    let codigoEditando = null;
 
     function setStatusFac(msg, type) {
       statusFacEl.textContent = msg || '';
@@ -525,9 +522,7 @@
     async function cargarFacultades() {
       try {
         const resp = await fetch(API_BASE + '/facultades');
-        if (!resp.ok) {
-          throw new Error('Error HTTP ' + resp.status);
-        }
+        if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
         const data = await resp.json();
         renderTablaFac(data);
         setStatusFac('Facultades cargadas.', 'ok');
@@ -576,7 +571,6 @@
         btnEliminar.onclick = async () => {
           const ok = confirm('¿Eliminar la facultad "' + f.codigo + '"?');
           if (!ok) return;
-
           try {
             const resp = await fetch(API_BASE + '/facultades/' + encodeURIComponent(f.codigo), {
               method: 'DELETE'
@@ -588,9 +582,8 @@
             setStatusFac('Facultad eliminada correctamente.', 'ok');
             limpiarFormularioFac();
             cargarFacultades();
-            // refrescar combos de otros módulos
-            cargarFacultadesEnSelect();
-            cargarFacultadesEnSelectMateria();
+            cargarFacultadesEnSelectCarreras();
+            cargarFacultadesEnSelectMaterias();
             cargarFacultadesEnSelectMalla();
           } catch (err) {
             console.error(err);
@@ -654,8 +647,8 @@
 
         limpiarFormularioFac();
         cargarFacultades();
-        cargarFacultadesEnSelect();
-        cargarFacultadesEnSelectMateria();
+        cargarFacultadesEnSelectCarreras();
+        cargarFacultadesEnSelectMaterias();
         cargarFacultadesEnSelectMalla();
       } catch (err) {
         console.error(err);
@@ -715,7 +708,7 @@
       btnCancelarCar.style.display = 'inline-block';
     }
 
-    async function cargarFacultadesEnSelect() {
+    async function cargarFacultadesEnSelectCarreras() {
       try {
         const resp = await fetch(API_BASE + '/facultades');
         if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
@@ -735,7 +728,7 @@
           const existe = data.some(f => f.codigo === valorSeleccionado);
           if (existe) {
             selectFacultadCar.value = valorSeleccionado;
-            cargarCarreras(); // recargar carreras de esa facultad
+            cargarCarreras();
           } else {
             tablaCar.innerHTML = '';
           }
@@ -821,7 +814,7 @@
             setStatusCar('Carrera eliminada correctamente.', 'ok');
             limpiarFormularioCar();
             cargarCarreras();
-            cargarFacultadesEnSelectMalla(); // puede afectar malla
+            cargarFacultadesEnSelectMalla(); // afecta malla
           } catch (err) {
             console.error(err);
             setStatusCar('Error al eliminar carrera.', 'error');
@@ -915,7 +908,7 @@
     });
 
     // ========================
-    //  MATERIAS (solo facultad)
+    //  MATERIAS
     // ========================
     const formMat = document.getElementById('form-materia');
     const selectFacultadMat = document.getElementById('materia-facultad');
@@ -959,7 +952,7 @@
       btnCancelarMat.style.display = 'inline-block';
     }
 
-    async function cargarFacultadesEnSelectMateria() {
+    async function cargarFacultadesEnSelectMaterias() {
       try {
         const resp = await fetch(API_BASE + '/facultades');
         if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
@@ -979,7 +972,7 @@
           const existe = data.some(f => f.codigo === valorSeleccionado);
           if (existe) {
             selectFacultadMat.value = valorSeleccionado;
-            await cargarMateriasPorFacultad();
+            cargarMaterias();
           } else {
             tablaMat.innerHTML = '';
           }
@@ -989,9 +982,8 @@
       }
     }
 
-    async function cargarMateriasPorFacultad() {
+    async function cargarMaterias() {
       const facultadCodigo = selectFacultadMat.value;
-
       if (!facultadCodigo) {
         tablaMat.innerHTML = '';
         setStatusMat('Seleccione una facultad para ver sus materias.', '');
@@ -1045,10 +1037,7 @@
         btnEditar.className = 'btn-secondary';
         btnEditar.onclick = () => {
           cargarEnFormularioMat(m);
-          setStatusMat(
-            'Editando materia ' + m.codigo + ' (' + m.facultad_codigo + ')',
-            ''
-          );
+          setStatusMat('Editando materia ' + m.codigo + ' (' + m.facultad_codigo + ')', '');
         };
 
         const btnEliminar = document.createElement('button');
@@ -1057,15 +1046,13 @@
         btnEliminar.style.marginLeft = '6px';
         btnEliminar.onclick = async () => {
           const ok = confirm(
-            '¿Eliminar la materia "' + m.codigo +
-            '" de la facultad "' + m.facultad_codigo + '"?'
+            '¿Eliminar la materia "' + m.codigo + '" de la facultad "' + m.facultad_codigo + '"?'
           );
           if (!ok) return;
 
           try {
             const resp = await fetch(
-              API_BASE +
-              '/materias/' +
+              API_BASE + '/materias/' +
               encodeURIComponent(m.facultad_codigo) + '/' +
               encodeURIComponent(m.codigo),
               { method: 'DELETE' }
@@ -1076,8 +1063,8 @@
             }
             setStatusMat('Materia eliminada correctamente.', 'ok');
             limpiarFormularioMat();
-            cargarMateriasPorFacultad();
-            cargarFacultadesEnSelectMalla(); // por si hay malla que referencie esta materia
+            cargarMaterias();
+            cargarMateriasEnSelectMalla();
           } catch (err) {
             console.error(err);
             setStatusMat('Error al eliminar materia.', 'error');
@@ -1096,9 +1083,9 @@
       });
     }
 
-    selectFacultadMat.addEventListener('change', async () => {
+    selectFacultadMat.addEventListener('change', () => {
       limpiarFormularioMat();
-      await cargarMateriasPorFacultad();
+      cargarMaterias();
     });
 
     formMat.addEventListener('submit', async (e) => {
@@ -1127,8 +1114,7 @@
 
         if (materiaFacultadEditando && materiaCodigoEditando) {
           const resp = await fetch(
-            API_BASE +
-            '/materias/' +
+            API_BASE + '/materias/' +
             encodeURIComponent(materiaFacultadEditando) + '/' +
             encodeURIComponent(materiaCodigoEditando),
             {
@@ -1146,11 +1132,7 @@
           const resp = await fetch(API_BASE + '/materias', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              facultad_codigo,
-              codigo,
-              descripcion
-            })
+            body: JSON.stringify({ facultad_codigo, codigo, descripcion })
           });
           if (!resp.ok) {
             const errData = await resp.json().catch(() => ({}));
@@ -1160,8 +1142,8 @@
         }
 
         limpiarFormularioMat();
-        cargarMateriasPorFacultad();
-        cargarFacultadesEnSelectMalla();
+        cargarMaterias();
+        cargarMateriasEnSelectMalla();
       } catch (err) {
         console.error(err);
         setStatusMat(err.message || 'Error al guardar materia.', 'error');
@@ -1181,10 +1163,11 @@
     const formMalla = document.getElementById('form-malla');
     const selectFacultadMalla = document.getElementById('malla-facultad');
     const selectCarreraMalla = document.getElementById('malla-carrera');
+    const inputPromoMalla = document.getElementById('malla-promo');
     const selectMateriaMalla = document.getElementById('malla-materia');
-    const inputMallaAnio = document.getElementById('malla-anio');
-    const inputMallaSemestre = document.getElementById('malla-semestre');
-    const selectMallaTipo = document.getElementById('malla-tipo');
+    const inputAnioMalla = document.getElementById('malla-anio');
+    const inputSemestreMalla = document.getElementById('malla-semestre');
+    const selectTipoMalla = document.getElementById('malla-tipo');
     const tablaMalla = document.getElementById('tabla-malla');
     const statusMallaEl = document.getElementById('status-malla');
     const btnGuardarMalla = document.getElementById('btn-guardar-malla');
@@ -1192,6 +1175,7 @@
 
     let mallaFacultadEditando = null;
     let mallaCarreraEditando = null;
+    let mallaPromoEditando = null;
     let mallaMateriaEditando = null;
 
     function setStatusMalla(msg, type) {
@@ -1200,39 +1184,47 @@
     }
 
     function limpiarFormularioMalla() {
-      inputMallaAnio.value = '';
-      inputMallaSemestre.value = '';
-      selectMallaTipo.value = '';
+      selectMateriaMalla.value = '';
+      inputAnioMalla.value = '';
+      inputSemestreMalla.value = '';
+      selectTipoMalla.value = '';
       mallaFacultadEditando = null;
       mallaCarreraEditando = null;
+      mallaPromoEditando = null;
       mallaMateriaEditando = null;
-
       selectFacultadMalla.disabled = false;
       selectCarreraMalla.disabled = false;
+      inputPromoMalla.disabled = false;
       selectMateriaMalla.disabled = false;
       btnGuardarMalla.textContent = 'Guardar';
       btnCancelarMalla.style.display = 'none';
     }
 
-    function cargarEnFormularioMalla(m) {
-      selectFacultadMalla.value = m.facultad_codigo;
+    function cargarEnFormularioMalla(row) {
+      selectFacultadMalla.value = row.facultad_codigo;
+
+      // cargar carreras y materias para esa facultad y setear valores
       cargarCarrerasEnSelectMalla().then(() => {
-        selectCarreraMalla.value = m.carrera_codigo;
+        selectCarreraMalla.value = row.carrera_codigo;
       });
+
       cargarMateriasEnSelectMalla().then(() => {
-        selectMateriaMalla.value = m.materia_codigo;
+        selectMateriaMalla.value = row.materia_codigo;
       });
 
-      inputMallaAnio.value = m.anio;
-      inputMallaSemestre.value = m.semestre;
-      selectMallaTipo.value = m.tipo || '';
+      inputPromoMalla.value = row.promo;
+      inputAnioMalla.value = row.anio;
+      inputSemestreMalla.value = row.semestre;
+      selectTipoMalla.value = row.tipo;
 
-      mallaFacultadEditando = m.facultad_codigo;
-      mallaCarreraEditando = m.carrera_codigo;
-      mallaMateriaEditando = m.materia_codigo;
+      mallaFacultadEditando = row.facultad_codigo;
+      mallaCarreraEditando = row.carrera_codigo;
+      mallaPromoEditando = row.promo;
+      mallaMateriaEditando = row.materia_codigo;
 
       selectFacultadMalla.disabled = true;
       selectCarreraMalla.disabled = true;
+      inputPromoMalla.disabled = true;
       selectMateriaMalla.disabled = true;
       btnGuardarMalla.textContent = 'Actualizar';
       btnCancelarMalla.style.display = 'inline-block';
@@ -1260,6 +1252,7 @@
             selectFacultadMalla.value = valorSeleccionado;
             await cargarCarrerasEnSelectMalla();
             await cargarMateriasEnSelectMalla();
+            await cargarMalla();
           } else {
             selectCarreraMalla.innerHTML = '<option value="">Seleccione una carrera</option>';
             selectMateriaMalla.innerHTML = '<option value="">Seleccione una materia</option>';
@@ -1312,8 +1305,9 @@
       }
 
       try {
-        // materias dependen SOLO de facultad
-        const resp = await fetch(API_BASE + '/materias/facultad/' + encodeURIComponent(facCodigo));
+        const resp = await fetch(
+          API_BASE + '/materias/facultad/' + encodeURIComponent(facCodigo)
+        );
         if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
         const data = await resp.json();
 
@@ -1341,10 +1335,11 @@
     async function cargarMalla() {
       const facultadCodigo = selectFacultadMalla.value;
       const carreraCodigo = selectCarreraMalla.value;
+      const promo = inputPromoMalla.value;
 
-      if (!facultadCodigo || !carreraCodigo) {
+      if (!facultadCodigo || !carreraCodigo || !promo) {
         tablaMalla.innerHTML = '';
-        setStatusMalla('Seleccione facultad y carrera para ver la malla.', '');
+        setStatusMalla('Seleccione facultad, carrera y promo para ver la malla.', '');
         return;
       }
 
@@ -1354,7 +1349,9 @@
           API_BASE + '/malla/facultad/' +
           encodeURIComponent(facultadCodigo) +
           '/carrera/' +
-          encodeURIComponent(carreraCodigo)
+          encodeURIComponent(carreraCodigo) +
+          '/promo/' +
+          encodeURIComponent(promo)
         );
         if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
         const data = await resp.json();
@@ -1366,20 +1363,20 @@
       }
     }
 
-    function renderTablaMalla(registros) {
+    function renderTablaMalla(rows) {
       tablaMalla.innerHTML = '';
-      if (!registros || registros.length === 0) {
+      if (!rows || rows.length === 0) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = 7;
-        td.textContent = 'No hay registros de malla para esta carrera.';
+        td.colSpan = 9;
+        td.textContent = 'No hay materias en la malla para esta carrera y promo.';
         td.style.textAlign = 'center';
         tr.appendChild(td);
         tablaMalla.appendChild(tr);
         return;
       }
 
-      registros.forEach(r => {
+      rows.forEach(r => {
         const tr = document.createElement('tr');
 
         const tdFac = document.createElement('td');
@@ -1388,8 +1385,14 @@
         const tdCar = document.createElement('td');
         tdCar.textContent = r.carrera_codigo;
 
+        const tdPromo = document.createElement('td');
+        tdPromo.textContent = r.promo;
+
         const tdMat = document.createElement('td');
         tdMat.textContent = r.materia_codigo;
+
+        const tdMatDesc = document.createElement('td');
+        tdMatDesc.textContent = r.materia_descripcion || '';
 
         const tdAnio = document.createElement('td');
         tdAnio.textContent = r.anio;
@@ -1408,7 +1411,8 @@
         btnEditar.onclick = () => {
           cargarEnFormularioMalla(r);
           setStatusMalla(
-            'Editando malla: ' + r.materia_codigo + ' (' + r.carrera_codigo + ', ' + r.facultad_codigo + ')',
+            'Editando registro de malla: ' +
+            r.materia_codigo + ' (' + r.carrera_codigo + ' - ' + r.promo + ')',
             ''
           );
         };
@@ -1419,18 +1423,18 @@
         btnEliminar.style.marginLeft = '6px';
         btnEliminar.onclick = async () => {
           const ok = confirm(
-            '¿Eliminar el registro de malla de la materia "' + r.materia_codigo +
+            '¿Eliminar la materia "' + r.materia_codigo +
             '" de la carrera "' + r.carrera_codigo +
-            '" y facultad "' + r.facultad_codigo + '"?'
+            '" promo "' + r.promo + '"?'
           );
           if (!ok) return;
 
           try {
             const resp = await fetch(
-              API_BASE +
-              '/malla/' +
+              API_BASE + '/malla/' +
               encodeURIComponent(r.facultad_codigo) + '/' +
               encodeURIComponent(r.carrera_codigo) + '/' +
+              encodeURIComponent(r.promo) + '/' +
               encodeURIComponent(r.materia_codigo),
               { method: 'DELETE' }
             );
@@ -1452,7 +1456,9 @@
 
         tr.appendChild(tdFac);
         tr.appendChild(tdCar);
+        tr.appendChild(tdPromo);
         tr.appendChild(tdMat);
+        tr.appendChild(tdMatDesc);
         tr.appendChild(tdAnio);
         tr.appendChild(tdSem);
         tr.appendChild(tdTipo);
@@ -1466,8 +1472,7 @@
       limpiarFormularioMalla();
       await cargarCarrerasEnSelectMalla();
       await cargarMateriasEnSelectMalla();
-      tablaMalla.innerHTML = '';
-      setStatusMalla('Seleccione una carrera para ver la malla.', '');
+      await cargarMalla();
     });
 
     selectCarreraMalla.addEventListener('change', async () => {
@@ -1475,15 +1480,21 @@
       await cargarMalla();
     });
 
+    inputPromoMalla.addEventListener('change', () => {
+      limpiarFormularioMalla();
+      cargarMalla();
+    });
+
     formMalla.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const facultad_codigo = selectFacultadMalla.value;
       const carrera_codigo = selectCarreraMalla.value;
+      const promo = inputPromoMalla.value;
       const materia_codigo = selectMateriaMalla.value;
-      const anio = inputMallaAnio.value.trim();
-      const semestre = inputMallaSemestre.value.trim();
-      const tipo = selectMallaTipo.value;
+      const anio = inputAnioMalla.value;
+      const semestre = inputSemestreMalla.value;
+      const tipo = selectTipoMalla.value;
 
       if (!facultad_codigo) {
         setStatusMalla('Debe seleccionar una facultad.', 'error');
@@ -1493,20 +1504,24 @@
         setStatusMalla('Debe seleccionar una carrera.', 'error');
         return;
       }
+      if (!promo) {
+        setStatusMalla('Debe indicar la promo.', 'error');
+        return;
+      }
       if (!materia_codigo && !mallaMateriaEditando) {
         setStatusMalla('Debe seleccionar una materia.', 'error');
         return;
       }
       if (!anio) {
-        setStatusMalla('El año es obligatorio.', 'error');
+        setStatusMalla('Debe indicar el año.', 'error');
         return;
       }
       if (!semestre) {
-        setStatusMalla('El semestre es obligatorio.', 'error');
+        setStatusMalla('Debe indicar el semestre.', 'error');
         return;
       }
       if (!tipo) {
-        setStatusMalla('El tipo es obligatorio.', 'error');
+        setStatusMalla('Debe indicar el tipo.', 'error');
         return;
       }
 
@@ -1514,12 +1529,13 @@
         btnGuardarMalla.disabled = true;
         setStatusMalla('Guardando...', '');
 
-        if (mallaFacultadEditando && mallaCarreraEditando && mallaMateriaEditando) {
+        if (mallaFacultadEditando && mallaCarreraEditando && mallaPromoEditando && mallaMateriaEditando) {
+          // Actualizar
           const resp = await fetch(
-            API_BASE +
-            '/malla/' +
+            API_BASE + '/malla/' +
             encodeURIComponent(mallaFacultadEditando) + '/' +
             encodeURIComponent(mallaCarreraEditando) + '/' +
+            encodeURIComponent(mallaPromoEditando) + '/' +
             encodeURIComponent(mallaMateriaEditando),
             {
               method: 'PUT',
@@ -1537,12 +1553,14 @@
           }
           setStatusMalla('Registro de malla actualizado correctamente.', 'ok');
         } else {
+          // Crear
           const resp = await fetch(API_BASE + '/malla', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               facultad_codigo,
               carrera_codigo,
+              promo: Number(promo),
               materia_codigo,
               anio: Number(anio),
               semestre: Number(semestre),
@@ -1574,10 +1592,9 @@
     // Inicialización
     (function init() {
       cargarFacultades();
-      cargarFacultadesEnSelect();
-      cargarFacultadesEnSelectMateria();
+      cargarFacultadesEnSelectCarreras();
+      cargarFacultadesEnSelectMaterias();
       cargarFacultadesEnSelectMalla();
-      // La vista inicial es "Inicio"
     })();
   </script>
 </body>
